@@ -7,5 +7,6 @@ requires-python = ">=3.11.5"
 dependencies = [
     "datetime>=6.0",
     "numpy>=2.4.6",
+    "pandas>=3.0.6",
     "pathlib>=1.0.1",
 ]
