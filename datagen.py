@@ -93,8 +93,8 @@ seed = get_next_seed()
 print(seed)
 
 deck_size = 52
-num_decks = 10000
-num_batches = 1000
+num_decks = 100
+num_batches = 10
 
 for n in range(num_batches):
     seed = get_next_seed()
