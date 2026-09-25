@@ -12,3 +12,8 @@ dependencies = [
     "pathlib>=1.0.1",
     "seaborn>=0.13.2",
 ]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+]

@@ -57,12 +57,7 @@ def get_next_seed() -> int:
 def save_decks(decks: np.ndarray, 
                seed: int
               ) -> Path:
-              
-    '''
-    This doesn't actually save anything,
-    it is just a demo of how I might construct
-    the filename.
-    '''
+
 
     PATH_DECKS.mkdir(parents=True, exist_ok=True)
 
