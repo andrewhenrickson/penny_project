@@ -138,7 +138,9 @@ def get_total_decks() -> int:
 
     for file_path in PATH_DECKS.glob("*.npz"):
 
-        with np.load(file_path) as data:
-            total_decks += data["decks"].shape[0]
+        filename = file_path.stem
+        dimensions = filename.split("_")[1]
+        n_decks = int(dimensions.split("x")[0])
+        total_decks += n_decks
 
     return total_decks
