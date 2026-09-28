@@ -18,11 +18,7 @@ def main(n_decks):
 
     # 1. Generate new decks
 
-    seed = get_next_seed()
-
     new_deck_files = generate_decks(n_decks=n_decks, batch_size=1000)
-
-    total_decks = get_total_decks()
 
     print(f"Created {n_decks} new decks.")
 

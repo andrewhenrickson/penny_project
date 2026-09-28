@@ -136,7 +136,7 @@ def plot_heatmap(heatmap_data, label_data, n_decks, strategy):
     output_folder.mkdir(parents=True, exist_ok=True)
 
     # Create filename
-    filename = (output_folder / f"{strategy}_heatmap_{n_decks}_decks.png")
+    filename = (output_folder / f"{strategy}_heatmap.png")
 
     # Save figure
     plt.savefig(filename, dpi=300, bbox_inches="tight")
