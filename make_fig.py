@@ -142,7 +142,7 @@ def plot_heatmap(heatmap_data, label_data, n_decks, strategy):
     plt.savefig(filename, dpi=300, bbox_inches="tight")
     plt.close()
 
-    print(f"Saved figure to {filename}")
+    #print(f"Saved figure to {filename}")
 
     return filename
 
