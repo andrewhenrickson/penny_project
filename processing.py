@@ -11,20 +11,20 @@ from itertools import product
 import pandas as pd
 from pathlib import Path
 
-file_path = "data/decks/decks_100x52_seed_1060.npz"
+#file_path = "data/decks/decks_100x52_seed_1060.npz"
 
-with np.load(file_path) as data:
-    packed_decks = data["decks"]
-    n_cards = int(data["n_cards"])  # e.g., 52
+# with np.load(file_path) as data:
+#     packed_decks = data["decks"]
+#     n_cards = int(data["n_cards"])  # e.g., 52
 
-# 1. Unpack bits using the same axis and bitorder
-unpacked = np.unpackbits(packed_decks, axis=1, bitorder="little")
+# # 1. Unpack bits using the same axis and bitorder
+# unpacked = np.unpackbits(packed_decks, axis=1, bitorder="little")
 
-# 2. Trim padding bits beyond the original n_cards count
-original_decks = unpacked[:, :n_cards]
+# # 2. Trim padding bits beyond the original n_cards count
+# original_decks = unpacked[:, :n_cards]
 
-print("Restored shape:", original_decks.shape)  # Output: (100, 52)
-print(original_decks[1])
+# print("Restored shape:", original_decks.shape)  # Output: (100, 52)
+# print(original_decks[1])
 
 
 
@@ -113,9 +113,6 @@ def find_tricks(first_choice: str, second_choice: str, original_decks: list) -> 
     return p1, p2, tie
             
 
-p1, p2, tie = find_tricks('101', '001', original_decks)
-print(p1, p2, tie)
-        
 
 
 # <h1> Iterate through all combos for all decks <h1>
@@ -129,7 +126,7 @@ import numpy as np
 import pandas as pd
 from itertools import product
 
-def iterate_all_combos():
+def iterate_all_combos(deck_files):
     first_player_combos = list(product([0, 1], repeat=3))
     second_player_combos = list(product([0, 1], repeat=3))
 
@@ -154,8 +151,21 @@ def iterate_all_combos():
             if p1_str != p2_str:
                 totals[(p1_str, p2_str)] = [0, 0, 0]
 
-    for file_path in folder_path.glob("*.npz"):
-        print(f"Processing: {file_path.name}")
+     # If old results exist, load them
+    db_path = Path("tricks.db") # Or Path("data/tricks.db") if in a folder
+    if db_path.exists():
+        with sqlite3.connect(db_path) as conn:
+            old_data = pd.read_sql_query(
+                "SELECT * FROM trick_stats",
+                conn)
+
+        for _, row in old_data.iterrows():
+            key = (row["Player 1 Combo"],row["Player 2 Combo"])
+
+            totals[key] = [int(row["Player 1 Wins"]), int(row["Player 2 Wins"]), int(row["Ties"])]
+
+    for file_path in deck_files:
+        #print(f"Processing: {file_path.name}")
 
         with np.load(file_path) as data:
             packed_decks = data["decks"]
@@ -204,13 +214,11 @@ def iterate_all_combos():
     df = pd.DataFrame(results)
 
     # --- Save to tricks.db ---
-    db_path = Path("tricks.db")  # Or Path("data/tricks.db") if in a folder
     with sqlite3.connect(db_path) as conn:
         df.to_sql("trick_stats", conn, if_exists="replace", index=False)
         print(f"Saved {len(df)} rows to '{db_path}' in table 'trick_stats'.")
 
 
-iterate_all_combos()
 
 
 # In[10]:
@@ -295,9 +303,6 @@ def find_points(first_choice: str, second_choice: str, original_decks: list) -> 
 
     return p1, p2, tie
             
-
-p1, p2, tie = find_points('101', '001', original_decks)
-print(p1, p2, tie)
         
 
 
@@ -310,7 +315,7 @@ import numpy as np
 import pandas as pd
 from itertools import product
 
-def iterate_all_combos_for_points():
+def iterate_all_combos_for_points(deck_files):
     first_player_combos = list(product([0, 1], repeat=3))
     second_player_combos = list(product([0, 1], repeat=3))
 
@@ -325,8 +330,6 @@ def iterate_all_combos_for_points():
         "Tie %": [],
     }
 
-    folder_path = Path("data/decks")
-
     totals = {}
     for p1 in first_player_combos:
         for p2 in second_player_combos:
@@ -335,8 +338,19 @@ def iterate_all_combos_for_points():
             if p1_str != p2_str:
                 totals[(p1_str, p2_str)] = [0, 0, 0]
 
-    for file_path in folder_path.glob("*.npz"):
-        print(f"Processing: {file_path.name}")
+    #load old data
+    db_path = Path("points.db")
+    if db_path.exists():
+        with sqlite3.connect(db_path) as conn:
+            old_data = pd.read_sql_query(
+                "SELECT * FROM combo_stats",
+                conn)
+        for _, row in old_data.iterrows():
+            key = (row["Player 1 Combo"],row["Player 2 Combo"])
+            totals[key] = [int(row["Player 1 Wins"]), int(row["Player 2 Wins"]), int(row["Ties"])]
+
+    for file_path in deck_files:
+        #print(f"Processing: {file_path.name}")
         with np.load(file_path) as data:
             packed_decks = data["decks"]
             n_cards = int(data["n_cards"])
@@ -374,10 +388,8 @@ def iterate_all_combos_for_points():
     df = pd.DataFrame(results)
 
     # --- Save to SQLite Database ---
-    db_path = Path("points.db")
     with sqlite3.connect(db_path) as conn:
         df.to_sql("combo_stats", conn, if_exists="replace", index=False)
         print(f"Successfully saved {len(df)} rows to '{db_path}' in table 'combo_stats'.")
 
-iterate_all_combos_for_points()
 

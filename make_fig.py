@@ -1,3 +1,13 @@
+import numpy as np
+from itertools import product
+import pandas as pd
+from pathlib import Path
+import sqlite3
+import json
+from datetime import datetime as dt
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 # this loads in the data from the sql database
 
@@ -74,7 +84,7 @@ def create_heatmap_data(df):
 
     return heatmap_data, label_data
 
-def plot_heatmap(heatmap_data, label_data):
+def plot_heatmap(heatmap_data, label_data, n_decks, strategy):
     # makes the actual plot
 
     plt.figure(figsize=(10, 6))
@@ -98,16 +108,23 @@ def plot_heatmap(heatmap_data, label_data):
     ax.set_xlabel("Player 2 Choice")
     ax.set_ylabel("Player 1 Choice")
 
+    if strategy == "tricks":
+        strategy_title = "Tricks Strategy"
+    else:
+        strategy_title = "Cards Strategy"
+
+
     ax.set_title(
-    "Probability of Player 2 Winning (Odds of a Tie)",
-    pad=28,
-    fontweight="bold",
-    fontsize=16)
+        f"Probability of Player 2 Winning — {strategy_title}",
+        pad=28,
+        fontweight="bold",
+        fontsize=16
+    )
 
     ax.text(
         0.5,
         1.11,
-        f"Number of Decks: {num_decks*num_batches}",
+        f"Total Number of Decks: {n_decks}",
         transform=ax.transAxes,
         ha="center",
         va="bottom",
