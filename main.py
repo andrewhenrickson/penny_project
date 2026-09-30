@@ -1,12 +1,4 @@
 # %%
-import numpy as np
-from itertools import product
-import pandas as pd
-from pathlib import Path
-import sqlite3
-import json
-from datetime import datetime as dt
-import matplotlib.pyplot as plt
 import time
 
 from src.datagen import make_decks, get_next_seed, save_decks, generate_decks, get_total_decks
@@ -16,43 +8,48 @@ from src.make_fig import (load_data, process_data, create_heatmap_data, plot_hea
 
 def main(n_decks):
 
-    # 1. Generate new decks
+    # generate new decks
 
     new_deck_files = generate_decks(n_decks=n_decks, batch_size=1000)
 
     print(f"Created {n_decks} new decks.")
 
-    # 2. Count ALL saved decks
+    # count all saved decks
 
     total_decks = get_total_decks()
 
     print(f"Total decks available: {total_decks}")
 
-    # 3. Run Tricks strategy
+    # run tricks strategy
 
     print("\nProcessing Tricks strategy...")
 
+    # scores the decks
     iterate_all_combos(deck_files=new_deck_files)
 
+    # loads old data
     tricks_data = load_data(
-        "tricks.db",
-        "trick_stats"
-    )
+    "data/tricks.db",
+    "trick_stats")
 
+    # formats the data and keeps only what we need for the heatmaps
     tricks_data = process_data(tricks_data)
 
+    # makes heatmap labels
     tricks_heatmap, tricks_labels = create_heatmap_data(
         tricks_data
     )
 
-    # 4. Run Cards strategy
+    # run cards strategy
 
     print("\nProcessing Cards strategy...")
 
+    # scores the decks
     iterate_all_combos_for_points(deck_files=new_deck_files)
 
+    # loads old data
     cards_data = load_data(
-        "points.db",
+        "data/points.db",
         "combo_stats"
     )
 
@@ -65,7 +62,7 @@ def main(n_decks):
     print(f"\n{n_decks:,} new decks successfully added.")
     print(f"Results now include {total_decks:,} total decks.\n")
 
-    # 5. Display BOTH graphs
+    # create both plots
 
     plot_heatmap(
         tricks_heatmap,
@@ -82,6 +79,7 @@ def main(n_decks):
     )
 
 
+# runs the actual function including the input, and times it because I was curious.
 if __name__ == "__main__":
 
     n_decks = int(
@@ -102,7 +100,3 @@ if __name__ == "__main__":
     seconds = elapsed_time % 60
 
     print(f"\nTotal run time: "f"{minutes} minutes, {seconds:.2f} seconds")
-
-
-
-

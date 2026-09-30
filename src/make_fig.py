@@ -8,9 +8,6 @@ from datetime import datetime as dt
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
-# this loads in the data from the sql database
-
 def load_data(db_path, table_name):
     
     # this loads in the data from the sql database
@@ -30,26 +27,11 @@ def process_data(data):
     
     # here, we processes the data to keep necessary columns and convert probabilities to whole-number percentages.
     
-    data = data[
-        [
-            "Player 1 Combo",
-            "Player 2 Combo",
-            "Player 2 Win %",
-            "Tie %"
-        ]
-    ].copy()
+    data = data[["Player 1 Combo","Player 2 Combo","Player 2 Win %","Tie %"]].copy()
 
-    percent_cols = [
-        "Player 2 Win %",
-        "Tie %"
-    ]
+    percent_cols = ["Player 2 Win %","Tie %"]
 
-    data[percent_cols] = (
-        data[percent_cols]
-        .mul(100)
-        .round()
-        .astype(int)
-    )
+    data[percent_cols] = (data[percent_cols].mul(100).round().astype(int))
 
     return data
 
@@ -69,7 +51,7 @@ def create_heatmap_data(df):
         values="Player 2 Win %"
     )
 
-    # Labels displayed inside each cell
+    # make the df displayed inside each cell
     labels = df.copy()
 
     labels["label"] = (
@@ -82,6 +64,7 @@ def create_heatmap_data(df):
         values="label"
     )
 
+    #return dfs for actual heatmap data and for the labels
     return heatmap_data, label_data
 
 def plot_heatmap(heatmap_data, label_data, n_decks, strategy):
@@ -105,9 +88,10 @@ def plot_heatmap(heatmap_data, label_data, n_decks, strategy):
     ax.xaxis.tick_top()
     ax.xaxis.set_label_position("top")
 
-    ax.set_xlabel("Player 2 Choice")
-    ax.set_ylabel("Player 1 Choice")
+    ax.set_xlabel("My Choice")
+    ax.set_ylabel("Opponents Choice")
 
+    # for the title
     if strategy == "tricks":
         strategy_title = "Tricks Strategy"
     else:
@@ -131,18 +115,16 @@ def plot_heatmap(heatmap_data, label_data, n_decks, strategy):
         fontsize=12
     )
 
-     # Create figures folder if it doesn't exist
+    # Create figures folder if it doesn't exist
     output_folder = Path("figures")
     output_folder.mkdir(parents=True, exist_ok=True)
 
-    # Create filename
+    # Create filename, same for every figure so you just have to reopen the same figure
     filename = (output_folder / f"{strategy}_heatmap.png")
 
     # Save figure
     plt.savefig(filename, dpi=300, bbox_inches="tight")
     plt.close()
-
-    #print(f"Saved figure to {filename}")
 
     return filename
 

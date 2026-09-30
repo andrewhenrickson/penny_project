@@ -2,28 +2,32 @@ import json
 import numpy as np
 from pathlib import Path
 from datetime import datetime as dt
+import sqlite3
 
+#paths for the data to be saved in the repo
 PATH_DECKS = Path('data/decks/')
 PATH_SEED_LOG = Path('data/seed.json')
 SEED_BASE = 1
 
-
+#make the decks
 def make_decks(seed: int, 
                n_decks: int,
                n_cards: int = 10
               ) -> np.ndarray:
     
+    #select the seed
     rng = np.random.default_rng(seed)
     
     all_decks = []
 
+    # makes a list of 26 1s and 0s,git s and then randomly shuffles them and adds the deck to the array
     for i in range(n_decks):
         deck = [0, 1] * (n_cards // 2)
         rng.shuffle(deck)
         all_decks.append(deck)
 
     return np.array(all_decks, dtype=np.uint8)
-        
+       
 def get_next_seed() -> int:
     '''
     Read the last seed used, increment by 1,
@@ -54,7 +58,7 @@ def get_next_seed() -> int:
     return seed
 
 
-
+# saves the decks in our data folder
 def save_decks(
     decks: np.ndarray,
     seed: int
@@ -67,6 +71,7 @@ def save_decks(
     n_decks = decks.shape[0]
     n_cards = decks.shape[1]
 
+    #packs the decks for more efficient storage purposes
     packed_decks = np.packbits(
         decks,
         axis=1,
@@ -76,6 +81,7 @@ def save_decks(
         PATH_DECKS /
         f"decks_{n_decks}x{n_cards}_seed_{seed}.npz" )
 
+    # actuallt saving them
     np.savez(
         filename,
         decks=packed_decks,
@@ -84,18 +90,12 @@ def save_decks(
 
     return filename
     
-
+# use all the prior functions to actually generate the decks and save them in batches of 1000 (to optimize randomness with seeds)
 def generate_decks(
     n_decks: int,
     n_cards: int = 52,
     batch_size: int = 1000
 ):
-    """
-    Generate and save decks in batches.
-
-    Each batch contains at most 1000 decks and
-    receives a new seed.
-    """
 
     deck_files = []
 
@@ -104,10 +104,7 @@ def generate_decks(
     while decks_remaining > 0:
 
         # determine how many decks go in this batch
-        current_batch_size = min(
-            batch_size,
-            decks_remaining
-        )
+        current_batch_size = min(batch_size, decks_remaining)
 
         # get a new seed for every batch
         seed = get_next_seed()
@@ -132,15 +129,25 @@ def generate_decks(
 
     return deck_files
 
+# a function to get the total number of decks to display in output and on the figures
 def get_total_decks() -> int:
 
-    total_decks = 0
+    db_path = Path("data/tricks.db")
 
-    for file_path in PATH_DECKS.glob("*.npz"):
+    if not db_path.exists():
+        return 0
 
-        filename = file_path.stem
-        dimensions = filename.split("_")[1]
-        n_decks = int(dimensions.split("x")[0])
-        total_decks += n_decks
+    with sqlite3.connect(db_path) as conn:
+        row = conn.execute("""
+            SELECT
+                "Player 1 Wins" +
+                "Player 2 Wins" +
+                "Ties"
+            FROM trick_stats
+            LIMIT 1
+        """).fetchone()
 
-    return total_decks
+    if row is None:
+        return 0
+
+    return int(row[0])
