@@ -9,9 +9,9 @@ from datetime import datetime as dt
 import matplotlib.pyplot as plt
 import time
 
-from datagen import make_decks, get_next_seed, save_decks, generate_decks, get_total_decks
-from processing import iterate_all_combos, iterate_all_combos_for_points
-from make_fig import (load_data, process_data, create_heatmap_data, plot_heatmap
+from src.datagen import make_decks, get_next_seed, save_decks, generate_decks, get_total_decks
+from src.processing import iterate_all_combos, iterate_all_combos_for_points
+from src.make_fig import (load_data, process_data, create_heatmap_data, plot_heatmap
 )
 
 def main(n_decks):

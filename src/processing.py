@@ -1,39 +1,13 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# <h1> Testing cell for one deck </h1>
-
-# In[2]:
-
-
 import numpy as np
 from itertools import product
 import pandas as pd
 from pathlib import Path
-
-#file_path = "data/decks/decks_100x52_seed_1060.npz"
-
-# with np.load(file_path) as data:
-#     packed_decks = data["decks"]
-#     n_cards = int(data["n_cards"])  # e.g., 52
-
-# # 1. Unpack bits using the same axis and bitorder
-# unpacked = np.unpackbits(packed_decks, axis=1, bitorder="little")
-
-# # 2. Trim padding bits beyond the original n_cards count
-# original_decks = unpacked[:, :n_cards]
-
-# print("Restored shape:", original_decks.shape)  # Output: (100, 52)
-# print(original_decks[1])
+import sqlite3
 
 
 
-# <h1> Get IDX for first game type with tricks </h1>
 
-# In[4]:
-
-
-def get_idx(deck_string: str, idx: int, first_choice: str, second_choice: str) -> int: 
+def get_idx(deck_string: str, idx: int, first_choice: str, second_choice: str) -> tuple[int, int]: 
     '''
     This function takes the string of the deck, the index to start at, and the two players pattern choices. 
     It finds the indicies for both patterns and compares them. If two valid indicies are returned, 
@@ -66,15 +40,10 @@ def get_idx(deck_string: str, idx: int, first_choice: str, second_choice: str) -
 
     return final_idx, points
 
-    
 
 
-# <h1> Get tricks from the decks for first game type </h1>
 
-# In[5]:
-
-
-def find_tricks(first_choice: str, second_choice: str, original_decks: list) -> int:
+def find_tricks(first_choice: str, second_choice: str, original_decks: list) -> tuple[int,int,int]:
     
     ''' 
     This function iterates through the decks that were created and sends parameters to get_idx
@@ -113,20 +82,7 @@ def find_tricks(first_choice: str, second_choice: str, original_decks: list) -> 
     return p1, p2, tie
             
 
-
-
-# <h1> Iterate through all combos for all decks <h1>
-
-# In[8]:
-
-
-import sqlite3
-from pathlib import Path
-import numpy as np
-import pandas as pd
-from itertools import product
-
-def iterate_all_combos(deck_files):
+def iterate_all_combos(deck_files: Path | str) -> sqlite3.Connection:
     first_player_combos = list(product([0, 1], repeat=3))
     second_player_combos = list(product([0, 1], repeat=3))
 
@@ -152,7 +108,7 @@ def iterate_all_combos(deck_files):
                 totals[(p1_str, p2_str)] = [0, 0, 0]
 
      # If old results exist, load them
-    db_path = Path("tricks.db") # Or Path("data/tricks.db") if in a folder
+    db_path = Path("data/tricks.db") # Or Path("data/tricks.db") if in a folder
     if db_path.exists():
         with sqlite3.connect(db_path) as conn:
             old_data = pd.read_sql_query(
@@ -220,11 +176,7 @@ def iterate_all_combos(deck_files):
 
 
 
-
-# In[10]:
-
-
-def get_idx_with_cards_earned(deck_string: str, idx: int, first_choice: str, second_choice: str) -> int: 
+def get_idx_with_cards_earned(deck_string: str, idx: int, first_choice: str, second_choice: str) -> tuple[int,int,int]: 
     '''
     This function takes the string of the deck, the index to start at, and the two players pattern choices. 
     It finds the indicies for both patterns and compares them. If two valid indicies are returned, 
@@ -261,10 +213,7 @@ def get_idx_with_cards_earned(deck_string: str, idx: int, first_choice: str, sec
     return final_idx, points, points_earned
 
 
-# In[11]:
-
-
-def find_points(first_choice: str, second_choice: str, original_decks: list) -> int:
+def find_points(first_choice: str, second_choice: str, original_decks: list) -> tuple[int,int,int]:
     
     ''' 
     This function iterates through the decks that were created and sends parameters to get_idx
@@ -303,19 +252,9 @@ def find_points(first_choice: str, second_choice: str, original_decks: list) -> 
 
     return p1, p2, tie
             
-        
+    
 
-
-# In[13]:
-
-
-import sqlite3
-from pathlib import Path
-import numpy as np
-import pandas as pd
-from itertools import product
-
-def iterate_all_combos_for_points(deck_files):
+def iterate_all_combos_for_points(deck_files: Path | str) -> sqlite3.Connection:
     first_player_combos = list(product([0, 1], repeat=3))
     second_player_combos = list(product([0, 1], repeat=3))
 
@@ -339,7 +278,7 @@ def iterate_all_combos_for_points(deck_files):
                 totals[(p1_str, p2_str)] = [0, 0, 0]
 
     #load old data
-    db_path = Path("points.db")
+    db_path = Path("data/points.db")
     if db_path.exists():
         with sqlite3.connect(db_path) as conn:
             old_data = pd.read_sql_query(
